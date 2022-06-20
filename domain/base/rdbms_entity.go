@@ -7,6 +7,7 @@ import (
 )
 
 type Entity interface {
+	RDBMSEntity
 }
 
 type RDBMSEntity interface {
