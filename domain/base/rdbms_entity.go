@@ -9,6 +9,10 @@ import (
 type Entity interface {
 }
 
+type RDBMSEntity interface {
+	IsRDBMSEntity() bool
+}
+
 func FillDefaults[E Entity](entity E) {
 	metaValue := reflect.ValueOf(entity).Elem()
 	if metaValue.Type() == reflect.TypeOf("") {
