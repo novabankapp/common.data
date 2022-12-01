@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/novabankapp/common.data/repositories/base"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/fatih/structs"
@@ -28,7 +31,7 @@ const (
 
 func NewCassandraRepository[E base2.NoSqlEntity](
 	session *gocqlx.Session,
-	tableName string, timeout time.Duration) *CassandraRepository[E] {
+	tableName string, timeout time.Duration) base.NoSqlRepository[E] {
 	return &CassandraRepository[E]{
 		session:   session,
 		tableName: tableName,
@@ -80,8 +83,10 @@ func (rep *CassandraRepository[E]) Create(ctx context.Context, entity E) (bool, 
 }
 func (rep *CassandraRepository[E]) Update(ctx context.Context, entity E, id string) (bool, error) {
 	ctx, cancel := context.WithTimeout(ctx, rep.timeout)
+
 	defer cancel()
-	columns := structs.Names(&E{})
+
+	columns := Map(structs.Names(entity), ToSnakeCase)
 	updateUser := qb.Update(rep.tableName).
 		Set(columns...).
 		Where(qb.EqLit("ID", id)).
@@ -122,7 +127,7 @@ func (rep *CassandraRepository[E]) Delete(ctx context.Context, id string) (bool,
 }
 
 func (rep *CassandraRepository[E]) Get(ctx context.Context,
-	page []byte, pageSize int, queries []map[string]string, orderBy string) (*[]E, error) {
+	page []byte, pageSize int, queries []map[string]string, orderBy string) (*[]E, []byte, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, rep.timeout)
 	defer cancel()
@@ -152,22 +157,26 @@ func (rep *CassandraRepository[E]) Get(ctx context.Context,
 
 	}
 	var results []E
+
 	get := qb.Select(rep.tableName).
 		OrderBy(orderBy, qb.DESC)
 	for i := range wheres {
 		get = get.Where(wheres[i])
 	}
-	query := get.
+	itr := get.
 		Query(*rep.session).
 		PageSize(pageSize).
 		PageState(page).
-		WithContext(ctx)
+		WithContext(ctx).
+		Iter()
 
-	err := query.Select(&results)
+	page = itr.PageState()
+
+	err := itr.Select(&results)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &results, nil
+	return &results, page, nil
 }
 func (rep *CassandraRepository[E]) GetByCondition(ctx context.Context,
 	queries []map[string]string) (*E, error) {
@@ -213,4 +222,21 @@ func (rep *CassandraRepository[E]) GetByCondition(ctx context.Context,
 		return nil, err
 	}
 	return &results[0], nil
+}
+
+func Map(vs []string, f func(string) string) []string {
+	vsm := make([]string, len(vs))
+	for i, v := range vs {
+		vsm[i] = f(v)
+	}
+	return vsm
+}
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+
+func ToSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
 }

@@ -1,9 +1,9 @@
 package base
 
 type NoSqlEntity interface {
-	NoSQLEntity
+	noSQLEntity
 }
 
-type NoSQLEntity interface {
+type noSQLEntity interface {
 	IsNoSQLEntity() bool
 }

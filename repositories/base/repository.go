@@ -18,6 +18,6 @@ type NoSqlRepository[E domainbase.NoSqlEntity] interface {
 	Create(ctx context.Context, entity E) (bool, error)
 	Update(ctx context.Context, entity E, id string) (bool, error)
 	Delete(ctx context.Context, id string) (bool, error)
-	Get(ctx context.Context, page []byte, pageSize int, queries []map[string]string, orderBy string) (*[]E, error)
+	Get(ctx context.Context, page []byte, pageSize int, queries []map[string]string, orderBy string) (*[]E, []byte, error)
 	GetByCondition(ctx context.Context, queries []map[string]string) (*E, error)
 }
