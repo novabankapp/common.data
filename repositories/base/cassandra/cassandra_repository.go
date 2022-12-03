@@ -5,9 +5,8 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/novabankapp/common.data/repositories/base"
+	"github.com/novabankapp/common.data/utils"
 	"log"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/fatih/structs"
@@ -86,7 +85,7 @@ func (rep *CassandraRepository[E]) Update(ctx context.Context, entity E, id stri
 
 	defer cancel()
 
-	columns := Map(structs.Names(entity), ToSnakeCase)
+	columns := utils.Map(structs.Names(entity), utils.ToSnakeCase)
 	updateUser := qb.Update(rep.tableName).
 		Set(columns...).
 		Where(qb.EqLit("ID", id)).
@@ -222,21 +221,4 @@ func (rep *CassandraRepository[E]) GetByCondition(ctx context.Context,
 		return nil, err
 	}
 	return &results[0], nil
-}
-
-func Map(vs []string, f func(string) string) []string {
-	vsm := make([]string, len(vs))
-	for i, v := range vs {
-		vsm[i] = f(v)
-	}
-	return vsm
-}
-
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
-func ToSnakeCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToLower(snake)
 }

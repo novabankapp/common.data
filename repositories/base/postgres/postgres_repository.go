@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"fmt"
 	domainbase "github.com/novabankapp/common.data/domain/base"
 	"github.com/novabankapp/common.infrastructure/postgres"
 	"gorm.io/gorm"
@@ -20,7 +21,10 @@ func NewPostGreRepository[E domainbase.Entity](conn *gorm.DB) *PostgresRepositor
 func (rep *PostgresRepository[E]) Create(ctx context.Context, entity E) (*E, error) {
 
 	result := rep.conn.Create(&entity).WithContext(ctx)
+	fmt.Println(result.RowsAffected)
 	if result.Error != nil && result.RowsAffected != 1 {
+		fmt.Println(result.Error)
+
 		return nil, errors.New("Error occurred while creating a new entity")
 
 	}
