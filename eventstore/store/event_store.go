@@ -17,7 +17,7 @@ type eventStore struct {
 	db  *esdb.Client
 }
 
-func NewEventStore(log logger.Logger, db *esdb.Client) *eventStore {
+func NewEventStore(log logger.Logger, db *esdb.Client) es.EventStore {
 	return &eventStore{log: log, db: db}
 }
 

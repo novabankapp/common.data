@@ -3,7 +3,7 @@ module github.com/novabankapp/common.data
 go 1.18
 
 require (
-	github.com/AleksK1NG/es-microservice v0.0.0-20220228063430-759f47e221dd
+	
 	github.com/EventStore/EventStore-Client-Go v1.0.2
 	github.com/fatih/structs v1.1.0
 	github.com/gocql/gocql v1.1.0

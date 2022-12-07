@@ -2,10 +2,10 @@ package store
 
 import (
 	"context"
-	"github.com/AleksK1NG/es-microservice/pkg/es"
-	"github.com/AleksK1NG/es-microservice/pkg/logger"
-	"github.com/AleksK1NG/es-microservice/pkg/tracing"
 	"github.com/EventStore/EventStore-Client-Go/esdb"
+	es "github.com/novabankapp/common.data/eventstore"
+	"github.com/novabankapp/common.infrastructure/logger"
+	"github.com/novabankapp/common.infrastructure/tracing"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/log"
 	"github.com/pkg/errors"
@@ -22,7 +22,7 @@ type aggregateStore struct {
 	db  *esdb.Client
 }
 
-func NewAggregateStore(log logger.Logger, db *esdb.Client) *aggregateStore {
+func NewAggregateStore(log logger.Logger, db *esdb.Client) es.AggregateStore {
 	return &aggregateStore{log: log, db: db}
 }
 
